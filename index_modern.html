@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#00f2ff">
+    <title>Smart Room AI</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- PWA Icons -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --bg-dark: #0a0a12;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-hover: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #8888aa;
+            --success: #00ff9d;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top right, #1a0b2e 0%, #000000 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Mesh */
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 15% 50%, rgba(112, 0, 255, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 242, 255, 0.15), transparent 25%);
+            filter: blur(60px);
+            animation: bgPulse 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                grid-template-columns: 350px 1fr;
+                height: 100vh;
+                overflow: hidden;
+            }
+        }
+
+        /* Glassmorphism Cards */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Header / Status Bar */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            opacity: 0.5;
+        }
+
+        .status-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .status-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-unit {
+            font-size: 1rem;
+            color: var(--text-muted);
+            -webkit-text-fill-color: var(--text-muted);
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-full {
+            grid-column: 1 / -1;
+        }
+
+        button {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 16px;
+            border-radius: 14px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            background: var(--glass-hover);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover::after {
+            opacity: 1;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+        }
+
+        button.active-danger {
+            background: #ff4757;
+            border-color: #ff4757;
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+        }
+
+        /* Chat Interface */
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            position: relative;
+        }
+
+        @media (min-width: 1024px) {
+            .chat-panel {
+                height: 100%;
+            }
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ai-pulse {
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.7);
+            animation: pulse-cyan 2s infinite;
+        }
+
+        @keyframes pulse-cyan {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(0, 242, 255, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(0, 242, 255, 0);
+            }
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .msg-ai {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.08);
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .msg-user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0, 242, 255, 0.15);
+        }
+
+        .msg-system {
+            align-self: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 5px 15px;
+        }
+
+        /* Input Area */
+        .input-wrapper {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 30px;
+            padding: 6px;
+            display: flex;
+            gap: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 0 15px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+        }
+
+        .icon-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: transparent;
+            border: none;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .icon-btn.active {
+            color: var(--primary);
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+        }
+
+        .send-btn-round {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .send-btn-round:hover {
+            transform: scale(1.1);
+            background: white;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-mesh"></div>
+
+    <div class="container">
+
+        <!-- LEFT PANEL: CONTROLS -->
+        <div class="card controls-panel">
+            <div class="section-title">
+                <span>SYSTEM STATUS</span>
+            </div>
+
+            <!-- Status Badges -->
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-label">Temperature</div>
+                    <div class="status-value"><span id="temp-value">--</span><span class="status-unit">°C</span></div>
+                </div>
+                <div class="status-card">
+                    <div class="status-label">Humidity</div>
+                    <div class="status-value"><span id="humidity-value">--</span><span class="status-unit">%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-label">System</div>
+                    <div class="status-value" style="font-size:1.2rem; color:var(--success)" id="system-status">ONLINE
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-label">Mode</div>
+                    <div class="status-value" style="font-size:1.2rem" id="mode-status">AUTO</div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>SETTINGS</span>
+            </div>
+
+            <div class="btn-grid">
+                <button id="auto-mode-btn" onclick="setMode('auto')">🤖 AUTO</button>
+                <button id="manual-mode-btn" onclick="setMode('manual')">✋ MANUAL</button>
+            </div>
+
+            <!-- Manual Controls -->
+            <div id="manual-controls" style="display:none; animation: slideUp 0.4s ease;">
+                <div class="section-title" style="margin-top:20px">MANUAL OVERRIDE</div>
+
+                <h4 class="status-label">FAN CONTROL</h4>
+                <div class="btn-grid" style="margin-bottom:15px">
+                    <button onclick="controlFan('on')">ON</button>
+                    <button onclick="controlFan('off')">OFF</button>
+                    <button class="btn-full" onclick="controlFan('auto')">AUTO</button>
+                </div>
+
+
+
+                <h4 class="status-label">BLINDS</h4>
+                <div class="btn-grid" style="margin-bottom:15px">
+                    <button onclick="controlBlinds('open')">OPEN</button>
+                    <button onclick="controlBlinds('close')">CLOSE</button>
+                </div>
+
+                <h4 class="status-label">LIGHTS</h4>
+                <div class="btn-grid">
+                    <button onclick="controlLights(255)">BRIGHT</button>
+                    <button onclick="controlLights(50)">DIM</button>
+                    <button class="btn-full" onclick="controlLights(0)">OFF</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT PANEL: AI CHAT -->
+        <div class="card chat-panel">
+            <div class="ai-header">
+                <div class="ai-pulse"></div>
+                <div>
+                    <h2 style="font-size:1.2rem; font-weight:600">Llama Intelligence</h2>
+                    <div style="font-size:0.8rem; color:var(--success)">Connected • Ready</div>
+                </div>
+            </div>
+
+            <div class="messages-area" id="messages">
+                <div class="message msg-ai">
+                    Hello! I am your Smart Room Assistant. I can control the environment or answer questions. How can I
+                    help you today?
+                </div>
+            </div>
+
+            <div class="input-wrapper">
+                <button class="icon-btn" id="voice-input-btn" onclick="toggleVoiceInput()">🎙️</button>
+                <input type="text" id="user-input" placeholder="Type or speak commands..."
+                    onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="icon-btn" id="voice-toggle" onclick="toggleVoiceResponse()">🔊</button>
+                <button class="send-btn-round" onclick="sendMessage()">➤</button>
+            </div>
+
+            <div class="btn-grid" style="margin-top:15px; grid-template-columns: repeat(3, 1fr);">
+                <button style="font-size:0.8rem; padding:10px" onclick="sendCommand('What is the temperature?')">🌡️
+                    Temp</button>
+                <button style="font-size:0.8rem; padding:10px" onclick="sendCommand('Turn on lights')">💡
+                    Lights</button>
+                <button style="font-size:0.8rem; padding:10px" onclick="sendCommand('Close blinds')">🚪 Close</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC (EXACT COPY OF WORKS-PERFECTLY LOGIC) -->
+    <script>
+        // Ollama configuration
+        const OLLAMA_URL = '/api/chat';
+        const MODEL = 'llama3.2:1b';
+
+        let conversationHistory = [];
+        let currentMode = 'auto';
+        let deferredPrompt;
+
+        // Voice settings
+        let voiceEnabled = true;
+        let isListening = false;
+        let recognition = null;
+        let currentUtterance = null;
+
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function () {
+                isListening = true;
+                document.getElementById('voice-input-btn').classList.add('active');
+                addSystemMessage('🎤 Listening...');
+            };
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user-input').value = transcript;
+                sendMessage(); // Auto-send on voice
+            };
+
+            recognition.onerror = function (event) {
+                console.error('Speech recognition error:', event.error);
+                addSystemMessage('❌ Voice input error');
+            };
+
+            recognition.onend = function () {
+                isListening = false;
+                document.getElementById('voice-input-btn').classList.remove('active');
+            };
+        }
+
+        function toggleVoiceInput() {
+            if (!recognition) {
+                addSystemMessage('❌ Speech recognition not supported');
+                return;
+            }
+            if (isListening) recognition.stop();
+            else recognition.start();
+        }
+
+        function toggleVoiceResponse() {
+            voiceEnabled = !voiceEnabled;
+            const btn = document.getElementById('voice-toggle');
+            if (voiceEnabled) {
+                btn.classList.add('active');
+                btn.textContent = '🔊';
+                addSystemMessage('✓ Voice ON');
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '🔇';
+                addSystemMessage('✓ Voice Muted');
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function speak(text) {
+            if (!voiceEnabled) return;
+            window.speechSynthesis.cancel();
+            const cleanText = text.replace(/[🚶🔥💧🌡️📷🪟🌀💡⚡⏹️🤖✋📊⚫🔅✓❌]/g, '');
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Mode control with Optimistic Update
+        async function setMode(mode) {
+            const previousMode = currentMode;
+            updateModeUI(mode === 'auto');
+
+            try {
+                const response = await fetch('/esp32/mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `mode=${mode}`
+                });
+                if (!response.ok) throw new Error('Failed to set mode');
+                addSystemMessage(`✓ Mode: ${mode.toUpperCase()}`);
+            } catch (error) {
+                console.error("Mode set failed:", error);
+                updateModeUI(previousMode === 'auto');
+                addSystemMessage("❌ Connection Error");
+            }
+        }
+
+        function updateModeUI(isAuto) {
+            currentMode = isAuto ? 'auto' : 'manual';
+            document.getElementById('mode-status').textContent = currentMode.toUpperCase();
+
+            const btnAuto = document.getElementById('auto-mode-btn');
+            const btnManual = document.getElementById('manual-mode-btn');
+            const manualControls = document.getElementById('manual-controls');
+
+            if (isAuto) {
+                btnAuto.classList.add('active');
+                btnManual.classList.remove('active');
+                manualControls.style.display = 'none';
+            } else {
+                btnAuto.classList.remove('active');
+                btnManual.classList.add('active');
+                manualControls.style.display = 'block';
+            }
+        }
+
+        // CONTROL FUNCTIONS
+        async function controlFan(state) {
+            // Visual feedback loop omitted for brevity, adding generic active class
+            document.querySelectorAll(`button[onclick="controlFan('${state}')"]`).forEach(b => b.classList.add('active'));
+            setTimeout(() => document.querySelectorAll(`button[onclick^="controlFan"]`).forEach(b => b.classList.remove('active')), 500);
+
+            try {
+                await fetch('/esp32/fan', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `state=${state}` });
+                addSystemMessage(`✓ Fan: ${state.toUpperCase()}`);
+            } catch (e) { addSystemMessage("❌ Fan Error"); }
+        }
+
+        async function controlBlinds(position) {
+            addSystemMessage(`⏳ Moving Blinds (${position})...`);
+            try {
+                const response = await fetch('/esp32/blinds', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `position=${position}` });
+                if (response.ok) addSystemMessage(`✓ Blinds: ${position.toUpperCase()}`);
+                else throw new Error();
+            } catch (e) { addSystemMessage("❌ Blinds Error"); }
+        }
+
+        async function controlLights(value) {
+            try {
+                await fetch('/esp32/brightness', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `value=${value}` });
+                addSystemMessage(`✓ Lights Updated`);
+                updateStatus(); // Instant refresh
+            } catch (e) { addSystemMessage("❌ Light Error"); }
+        }
+
+        // DATA FETCHING with Cache Busting
+        let isUpdating = false;
+        async function updateStatus() {
+            if (isUpdating) return;
+            isUpdating = true;
+
+            try {
+                const t = Date.now();
+                const [statusRes, sensorsRes] = await Promise.all([
+                    fetch(`/esp32/status?t=${t}`).catch(e => null),
+                    fetch(`/esp32/sensors?t=${t}`).catch(e => null)
+                ]);
+
+                if (statusRes && statusRes.ok) {
+                    const status = await statusRes.json();
+                    document.getElementById('system-status').textContent = status.system_on ? 'ONLINE' : 'OFFLINE';
+                    document.getElementById('system-status').style.color = status.system_on ? 'var(--success)' : '#666';
+
+                    if (currentMode !== (status.manual_mode ? 'manual' : 'auto')) {
+                        updateModeUI(!status.manual_mode);
+                    }
+                }
+
+                if (sensorsRes && sensorsRes.ok) {
+                    const sensors = await sensorsRes.json();
+                    document.getElementById('temp-value').textContent = sensors.temperature.toFixed(1);
+                    document.getElementById('humidity-value').textContent = sensors.humidity.toFixed(1);
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        // AI LOGIC
+        async function getFullSystemStatus() {
+            try {
+                const t = Date.now();
+                const [statusRes, sensorsRes] = await Promise.all([
+                    fetch(`/esp32/status?t=${t}`),
+                    fetch(`/esp32/sensors?t=${t}`)
+                ]);
+                const status = await statusRes.json();
+                const sensors = await sensorsRes.json();
+                return `ROOM DATA: Temp ${sensors.temperature.toFixed(1)}C, Hum ${sensors.humidity.toFixed(1)}%, Light ${sensors.light_level}, Mode ${status.manual_mode ? 'MANUAL' : 'AUTO'}, Fan ${status.fan_on ? 'ON' : 'OFF'}, Blinds ${status.blinds_state}`;
+            } catch (e) { return 'Room Status: Unknown (Connection Error)'; }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addUserMessage(message);
+            input.value = '';
+
+            conversationHistory.push({ role: 'user', content: `You are a friendly and helpful Smart Room AI. Respond naturally to the user. You can greet them or engage in general conversation, and use the status below to help with room controls. Be concise but warm.\n\n[ROOM STATUS]\n${status}\n\n[USER REQUEST]\n${message}` });
+
+            // Stream response
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message msg-ai';
+            messagesDiv.appendChild(messageDiv);
+
+            let fullResponse = '';
+            try {
+                const response = await fetch(OLLAMA_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model: MODEL, messages: conversationHistory, stream: true })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.trim()) {
+                            try {
+                                const data = JSON.parse(line);
+                                if (data.message && data.message.content) {
+                                    fullResponse += data.message.content;
+                                    messageDiv.textContent = fullResponse;
+                                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                                }
+                                if (data.done) {
+                                    conversationHistory.push({ role: 'assistant', content: fullResponse });
+                                    speak(fullResponse);
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }
+            } catch (error) {
+                messageDiv.textContent = '⚠️ AI Connection Error';
+            }
+        }
+
+        function sendCommand(cmd) {
+            document.getElementById('user-input').value = cmd;
+            sendMessage();
+        }
+
+        function addUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message msg-user';
+            div.textContent = text;
+            document.getElementById('messages').appendChild(div);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        }
+
+        function addSystemMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message msg-system';
+            div.textContent = text;
+            document.getElementById('messages').appendChild(div);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        }
+
+        // Init
+        window.addEventListener('load', () => {
+            updateStatus();
+            setInterval(updateStatus, 2000);
+
+            // Register PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js');
+            }
+        });
+    </script>
+</body>
+
+</html>

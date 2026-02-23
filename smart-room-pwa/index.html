@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered smart room control with Llama">
+    <meta name="theme-color" content="#00ff9d">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Smart Room">
+    
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    
+    <title>Smart Room - Llama AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Install Banner */
+        .install-banner {
+            background: rgba(0, 255, 157, 0.1);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .install-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .install-banner-icon {
+            font-size: 1.5rem;
+        }
+        
+        .install-banner-text {
+            color: white;
+        }
+        
+        .install-banner-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .install-banner-desc {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        
+        .install-banner-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .install-btn {
+            padding: 10px 20px;
+            background: #00ff9d;
+            border: none;
+            border-radius: 8px;
+            color: #1a1a2e;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .install-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .dismiss-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .dismiss-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .status-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+        }
+        
+        .status-label {
+            font-size: 0.85rem;
+            color: #00ff9d;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .status-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .fan-status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .fan-on {
+            background: #00ff9d;
+            color: #1a1a2e;
+        }
+        
+        .fan-off {
+            background: rgba(255, 255, 255, 0.1);
+            color: #888;
+        }
+        
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+        
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            height: fit-content;
+        }
+        
+        .controls-panel h3 {
+            color: #00ff9d;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-group h4 {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .control-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: #00ff9d;
+        }
+        
+        .control-btn.active {
+            background: #00ff9d;
+            color: #1a1a2e;
+        }
+        
+        /* Chat Container */
+        .chat-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .llama-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .llama-icon {
+            width: 50px;
+            height: 50px;
+            background: #00ff9d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        
+        .llama-title {
+            font-size: 1.5rem;
+            color: #00ff9d;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(0, 255, 157, 0.1);
+            border-radius: 20px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff9d;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-text {
+            color: #00ff9d;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        /* Messages */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 10px;
+        }
+        
+        .messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .messages::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 157, 0.3);
+            border-radius: 3px;
+        }
+        
+        .message {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .ai-avatar {
+            background: #00ff9d;
+            color: #1a1a2e;
+        }
+        
+        .user-avatar {
+            background: #667eea;
+            color: white;
+        }
+        
+        .message-content {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+        }
+        
+        .ai-message .message-content {
+            background: rgba(0, 255, 157, 0.1);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            color: white;
+        }
+        
+        .user-message {
+            flex-direction: row-reverse;
+        }
+        
+        .user-message .message-content {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        
+        .system-message .message-content {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            font-weight: 600;
+        }
+        
+        /* Input Area */
+        .input-area {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .voice-btn {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .voice-btn:hover {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: #00ff9d;
+        }
+        
+        .voice-btn.listening {
+            background: #e74c3c;
+            border-color: #c0392b;
+            animation: pulse-mic 1s infinite;
+        }
+        
+        @keyframes pulse-mic {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .voice-toggle-btn {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .voice-toggle-btn:hover {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: #00ff9d;
+        }
+        
+        .voice-toggle-btn.active {
+            background: #00ff9d;
+            color: #1a1a2e;
+        }
+        
+        .voice-toggle-btn.muted {
+            background: rgba(255, 255, 255, 0.05);
+            opacity: 0.5;
+        }
+        
+        .input-field {
+            flex: 1;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #00ff9d;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .input-field::placeholder {
+            color: #666;
+        }
+        
+        .send-btn {
+            padding: 15px 30px;
+            background: #00ff9d;
+            border: none;
+            border-radius: 25px;
+            color: #1a1a2e;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+        }
+        
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .install-banner {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .install-banner-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Install Banner -->
+        <div class="install-banner" id="install-banner">
+            <div class="install-banner-content">
+                <div class="install-banner-icon">📱</div>
+                <div class="install-banner-text">
+                    <div class="install-banner-title">Install Smart Room</div>
+                    <div class="install-banner-desc">Install this app for a better experience</div>
+                </div>
+            </div>
+            <div class="install-banner-buttons">
+                <button class="install-btn" id="install-button">Install</button>
+                <button class="dismiss-btn" id="dismiss-button">Later</button>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-label">Mode</div>
+                <div class="status-value" style="font-size:1.2rem">
+                    <span id="mode-status">AUTO</span>
+                </div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Temperature</div>
+                <div class="status-value"><span id="temperature">--</span>°C</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Humidity</div>
+                <div class="status-value"><span id="humidity">--</span>%</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Fan</div>
+                <div class="status-value">
+                    <span class="fan-status" id="fan-status">OFF</span>
+                </div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Lights</div>
+                <div class="status-value" style="font-size:1.2rem" id="lights-status">DIM</div>
+            </div>
+        </div>
+        
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Controls -->
+            <div class="controls-panel">
+                <h3>🎛️ Controls</h3>
+                
+                <div class="control-group">
+                    <h4>Mode</h4>
+                    <button class="control-btn" id="auto-mode-btn" onclick="setMode('auto')">🤖 AUTO</button>
+                    <button class="control-btn" id="manual-mode-btn" onclick="setMode('manual')">✋ MANUAL</button>
+                </div>
+                
+                <div id="manual-controls" style="display: none;">
+                    <div class="control-group">
+                        <h4>Fan</h4>
+                        <button class="control-btn" onclick="controlFan('on')">🌀 ON</button>
+                        <button class="control-btn" onclick="controlFan('off')">⚫ OFF</button>
+                        <button class="control-btn" onclick="controlFan('auto')">🤖 AUTO</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>Blinds</h4>
+                        <button class="control-btn" onclick="controlBlinds('open')">🪟 OPEN</button>
+                        <button class="control-btn" onclick="controlBlinds('close')">🚪 CLOSE</button>
+                        <button class="control-btn" onclick="controlBlinds('auto')">🤖 AUTO</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>Lights</h4>
+                        <button class="control-btn" onclick="controlLights(255)">💡 BRIGHT</button>
+                        <button class="control-btn" onclick="controlLights(50)">🔅 DIM</button>
+                        <button class="control-btn" onclick="controlLights(0)">⚫ OFF</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>Ask Llama</h4>
+                    <button class="control-btn" onclick="sendCommand('what is the temperature?')">🌡️ Temperature</button>
+                    <button class="control-btn" onclick="sendCommand('what is the status of the room?')">📊 Full Status</button>
+                    <button class="control-btn" onclick="sendCommand('turn on the fan')">🌀 Fan ON</button>
+                    <button class="control-btn" onclick="sendCommand('turn off the fan')">⚫ Fan OFF</button>
+                </div>
+            </div>
+            
+            <!-- Chat -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="llama-logo">
+                        <div class="llama-icon">AI</div>
+                        <div class="llama-title">LLAMA</div>
+                    </div>
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <div class="status-text">Llama 3.2:1b Ready</div>
+                    </div>
+                </div>
+                
+                <div class="messages" id="messages">
+                    <div class="message ai-message">
+                        <div class="message-avatar ai-avatar">AI</div>
+                        <div class="message-content">
+                            Hello! I'm your smart room AI assistant. I can help you control your room and answer any questions. Try asking me about the temperature or tell me to turn on the fan!
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-area">
+                    <button class="voice-btn" id="voice-input-btn" onclick="toggleVoiceInput()" title="Voice Input">
+                        🎤
+                    </button>
+                    <input 
+                        type="text" 
+                        class="input-field" 
+                        id="user-input" 
+                        placeholder="Ask anything... (or click 🎤 for voice)"
+                        onkeypress="if(event.key==='Enter') sendMessage()"
+                    >
+                    <button class="send-btn" onclick="sendMessage()">SEND</button>
+                    <button class="voice-toggle-btn" id="voice-toggle" onclick="toggleVoiceResponse()" title="Toggle Voice Responses">
+                        🔊
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const ESP32_IP = '192.168.0.137';
+        const OLLAMA_URL = 'http://192.168.0.101:11434/api/chat';  // Your computer's IP
+        const MODEL = 'llama3.2:1b';
+        
+        let conversationHistory = [];
+        let currentMode = 'auto';
+        let deferredPrompt;
+        
+        // Voice settings
+        let voiceEnabled = true;
+        let isListening = false;
+        let recognition = null;
+        let currentUtterance = null;
+        
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById('voice-input-btn').classList.add('listening');
+                document.getElementById('voice-input-btn').textContent = '🔴';
+                addSystemMessage('🎤 Listening...');
+            };
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user-input').value = transcript;
+                addSystemMessage(`🎤 You said: "${transcript}"`);
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                addSystemMessage('❌ Voice input error: ' + event.error);
+            };
+            
+            recognition.onend = function() {
+                isListening = false;
+                document.getElementById('voice-input-btn').classList.remove('listening');
+                document.getElementById('voice-input-btn').textContent = '🎤';
+            };
+        }
+        
+        // Voice input toggle
+        function toggleVoiceInput() {
+            if (!recognition) {
+                addSystemMessage('❌ Speech recognition not supported in this browser');
+                return;
+            }
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+        
+        // Voice output toggle
+        function toggleVoiceResponse() {
+            voiceEnabled = !voiceEnabled;
+            const btn = document.getElementById('voice-toggle');
+            
+            if (voiceEnabled) {
+                btn.classList.add('active');
+                btn.classList.remove('muted');
+                btn.textContent = '🔊';
+                addSystemMessage('✓ Voice responses enabled');
+            } else {
+                btn.classList.remove('active');
+                btn.classList.add('muted');
+                btn.textContent = '🔇';
+                addSystemMessage('✓ Voice responses muted');
+                // Stop any current speech
+                if (currentUtterance) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+        }
+        
+        // Speak text using Web Speech API
+        function speak(text) {
+            if (!voiceEnabled) return;
+            
+            // Cancel any ongoing speech
+            if (currentUtterance) {
+                window.speechSynthesis.cancel();
+            }
+            
+            // Clean text (remove emojis and special characters)
+            const cleanText = text.replace(/[🚶🔥💧🌡️📷🪟🌀💡⚡⏹️🤖✋📊⚫🔅✓❌]/g, '');
+            
+            if ('speechSynthesis' in window) {
+                currentUtterance = new SpeechSynthesisUtterance(cleanText);
+                currentUtterance.rate = 1.0;
+                currentUtterance.pitch = 1.0;
+                currentUtterance.volume = 1.0;
+                
+                // Try to use a natural-sounding voice
+                const voices = window.speechSynthesis.getVoices();
+                const preferredVoice = voices.find(v => 
+                    v.name.includes('Google') || 
+                    v.name.includes('Microsoft') || 
+                    v.name.includes('Natural')
+                );
+                if (preferredVoice) {
+                    currentUtterance.voice = preferredVoice;
+                }
+                
+                currentUtterance.onend = function() {
+                    currentUtterance = null;
+                };
+                
+                window.speechSynthesis.speak(currentUtterance);
+            }
+        }
+        
+        // PWA Install Logic
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install banner
+            const installBanner = document.getElementById('install-banner');
+            installBanner.style.display = 'flex';
+        });
+        
+        document.getElementById('install-button').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('PWA installed');
+                }
+                
+                deferredPrompt = null;
+                document.getElementById('install-banner').style.display = 'none';
+            }
+        });
+        
+        document.getElementById('dismiss-button').addEventListener('click', () => {
+            document.getElementById('install-banner').style.display = 'none';
+        });
+        
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+        
+        // Mode control
+        async function setMode(mode) {
+            try {
+                await fetch(`http://${ESP32_IP}/mode`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `mode=${mode}`
+                });
+                
+                currentMode = mode;
+                updateModeUI();
+                updateStatus();
+                
+                addSystemMessage(`✓ Mode changed to ${mode.toUpperCase()}`);
+            } catch (error) {
+                console.error('Mode change error:', error);
+            }
+        }
+        
+        function updateModeUI() {
+            const autoBtn = document.getElementById('auto-mode-btn');
+            const manualBtn = document.getElementById('manual-mode-btn');
+            const manualControls = document.getElementById('manual-controls');
+            
+            if (currentMode === 'auto') {
+                autoBtn.classList.add('active');
+                manualBtn.classList.remove('active');
+                manualControls.style.display = 'none';
+            } else {
+                autoBtn.classList.remove('active');
+                manualBtn.classList.add('active');
+                manualControls.style.display = 'block';
+            }
+        }
+        
+        // Manual controls
+        async function controlFan(state) {
+            try {
+                await fetch(`http://${ESP32_IP}/fan`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `state=${state}`
+                });
+                updateStatus();
+                addSystemMessage(`✓ Fan set to ${state.toUpperCase()}`);
+            } catch (error) {
+                console.error('Fan control error:', error);
+            }
+        }
+        
+        async function controlBlinds(position) {
+            try {
+                await fetch(`http://${ESP32_IP}/blinds`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `position=${position}`
+                });
+                updateStatus();
+                addSystemMessage(`✓ Blinds set to ${position.toUpperCase()}`);
+            } catch (error) {
+                console.error('Blinds control error:', error);
+            }
+        }
+        
+        async function controlLights(value) {
+            try {
+                await fetch(`http://${ESP32_IP}/brightness`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `value=${value}`
+                });
+                updateStatus();
+                const label = value === 255 ? 'BRIGHT' : value === 50 ? 'DIM' : 'OFF';
+                addSystemMessage(`✓ Lights set to ${label}`);
+            } catch (error) {
+                console.error('Lights control error:', error);
+            }
+        }
+        
+        // Get FULL room status for Llama
+        async function getFullSystemStatus() {
+            try {
+                const [statusRes, sensorsRes] = await Promise.all([
+                    fetch(`http://${ESP32_IP}/status`),
+                    fetch(`http://${ESP32_IP}/sensors`)
+                ]);
+                
+                const status = await statusRes.json();
+                const sensors = await sensorsRes.json();
+                
+                let statusText = `SMART ROOM SYSTEM STATUS:
+
+ENVIRONMENT:
+- Temperature: ${sensors.temperature}°C
+- Humidity: ${sensors.humidity}%
+- Light Level: ${sensors.light_level} (0-4095, higher = brighter)
+
+CONTROL MODE: ${status.manual_mode ? 'MANUAL' : 'AUTO'}
+
+DEVICES:
+- LED Lights: ${status.led_state} (Brightness: ${status.led_brightness}/255)
+- Fan: ${status.fan_on ? 'ON' : 'OFF'} (${status.fan_auto ? 'Auto Mode' : 'Manual Control'})
+- Blinds: ${status.blinds_state} (${status.blinds_auto ? 'Auto Mode' : 'Manual Control'})
+
+DETECTION:
+- Motion Sensor: ${sensors.motion ? 'DETECTED' : 'No motion'}
+- Camera: ${status.camera ? 'Human detected' : 'No detection'}`;
+
+                if (status.light_timeout_remaining && status.light_timeout_remaining > 0) {
+                    const mins = Math.floor(status.light_timeout_remaining / 60);
+                    const secs = status.light_timeout_remaining % 60;
+                    statusText += `\n- Lights will dim in: ${mins}m ${secs}s`;
+                }
+
+                statusText += `\n\nYou can control: fan (on/off), blinds (open/close), lights (bright/dim/off), and switch between auto/manual modes.`;
+                
+                return statusText;
+            } catch (error) {
+                return 'Unable to fetch system status.';
+            }
+        }
+        
+        // Get room context for Llama
+        async function getRoomContext() {
+            try {
+                const [statusRes, sensorsRes] = await Promise.all([
+                    fetch(`http://${ESP32_IP}/status`),
+                    fetch(`http://${ESP32_IP}/sensors`)
+                ]);
+                
+                const status = await statusRes.json();
+                const sensors = await sensorsRes.json();
+                
+                return `Current room: ${sensors.temperature}°C, ${sensors.humidity}% humidity, Fan ${status.fan_on ? 'ON' : 'OFF'}, Blinds ${status.blinds_state}, Lights ${status.led_state}. Mode: ${status.manual_mode ? 'MANUAL' : 'AUTO'}.`;
+            } catch (error) {
+                return '';
+            }
+        }
+        
+        // Execute ESP32 commands
+        async function executeCommand(message) {
+            const lowerMsg = message.toLowerCase();
+            
+            try {
+                // Fan
+                if (lowerMsg.includes('fan on') || lowerMsg.includes('turn on fan') || lowerMsg.includes('turn on the fan')) {
+                    await fetch(`http://${ESP32_IP}/fan`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'state=on'
+                    });
+                    addSystemMessage('✓ Fan turned ON');
+                    updateStatus();
+                    return true;
+                }
+                
+                if (lowerMsg.includes('fan off') || lowerMsg.includes('turn off fan') || lowerMsg.includes('turn off the fan')) {
+                    await fetch(`http://${ESP32_IP}/fan`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'state=off'
+                    });
+                    addSystemMessage('✓ Fan turned OFF');
+                    updateStatus();
+                    return true;
+                }
+                
+                // Blinds
+                if (lowerMsg.includes('open') && lowerMsg.includes('blind')) {
+                    await fetch(`http://${ESP32_IP}/blinds`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'position=open'
+                    });
+                    addSystemMessage('✓ Blinds opened');
+                    updateStatus();
+                    return true;
+                }
+                
+                if (lowerMsg.includes('close') && lowerMsg.includes('blind')) {
+                    await fetch(`http://${ESP32_IP}/blinds`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'position=close'
+                    });
+                    addSystemMessage('✓ Blinds closed');
+                    updateStatus();
+                    return true;
+                }
+                
+                // Lights
+                if (lowerMsg.includes('bright')) {
+                    await fetch(`http://${ESP32_IP}/brightness`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'value=255'
+                    });
+                    addSystemMessage('✓ Lights set to BRIGHT');
+                    updateStatus();
+                    return true;
+                }
+                
+                if (lowerMsg.includes('dim')) {
+                    await fetch(`http://${ESP32_IP}/brightness`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'value=50'
+                    });
+                    addSystemMessage('✓ Lights set to DIM');
+                    updateStatus();
+                    return true;
+                }
+                
+            } catch (error) {
+                console.error('Command error:', error);
+            }
+            
+            return false;
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addUserMessage(message);
+            input.value = '';
+            
+            // Execute command if applicable
+            await executeCommand(message);
+            
+            // Add full system status for status-related questions
+            let contextAdded = false;
+            const lowerMsg = message.toLowerCase();
+            
+            if (lowerMsg.includes('status') || lowerMsg.includes('how is') || 
+                lowerMsg.includes('what is') || lowerMsg.includes('tell me about')) {
+                
+                const fullStatus = await getFullSystemStatus();
+                conversationHistory.push({
+                    role: 'system',
+                    content: fullStatus
+                });
+                contextAdded = true;
+            } else if (lowerMsg.includes('temperature') || lowerMsg.includes('fan') || 
+                       lowerMsg.includes('light') || lowerMsg.includes('blind')) {
+                
+                const roomContext = await getRoomContext();
+                if (roomContext) {
+                    conversationHistory.push({
+                        role: 'system',
+                        content: roomContext
+                    });
+                    contextAdded = true;
+                }
+            }
+            
+            // Add user message to history
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+            
+            // Stream response from Llama
+            await streamResponse();
+            
+            // Remove context after use
+            if (contextAdded) {
+                const systemMsgIndex = conversationHistory.length - 2;
+                if (conversationHistory[systemMsgIndex] && conversationHistory[systemMsgIndex].role === 'system') {
+                    conversationHistory.splice(systemMsgIndex, 1);
+                }
+            }
+        }
+        
+        async function sendCommand(command) {
+            document.getElementById('user-input').value = command;
+            sendMessage();
+        }
+        
+        async function streamResponse() {
+            const messagesDiv = document.getElementById('messages');
+            
+            // Create AI message element
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message';
+            messageDiv.innerHTML = `
+                <div class="message-avatar ai-avatar">AI</div>
+                <div class="message-content"></div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            
+            const contentDiv = messageDiv.querySelector('.message-content');
+            let fullResponse = '';
+            
+            try {
+                const response = await fetch(OLLAMA_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        model: MODEL,
+                        messages: conversationHistory,
+                        stream: true
+                    })
+                });
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                while (true) {
+                    const {done, value} = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.trim()) {
+                            try {
+                                const data = JSON.parse(line);
+                                
+                                if (data.message && data.message.content) {
+                                    fullResponse += data.message.content;
+                                    contentDiv.textContent = fullResponse;
+                                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                                }
+                                
+                                if (data.done) {
+                                    conversationHistory.push({
+                                        role: 'assistant',
+                                        content: fullResponse
+                                    });
+                                    
+                                    // Speak the response
+                                    speak(fullResponse);
+                                }
+                            } catch (e) {
+                                // Skip invalid JSON
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                const errorMsg = 'Error: Could not connect to Ollama. Make sure "ollama serve" is running.';
+                contentDiv.textContent = errorMsg;
+                speak(errorMsg);
+                console.error('Stream error:', error);
+            }
+        }
+        
+        function addUserMessage(text) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.innerHTML = `
+                <div class="message-avatar user-avatar">U</div>
+                <div class="message-content">${text}</div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function addSystemMessage(text) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system-message';
+            messageDiv.innerHTML = `
+                <div class="message-avatar" style="background: #ffc107; color: #1a1a2e;">⚙</div>
+                <div class="message-content">${text}</div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        async function updateStatus() {
+            try {
+                const [statusRes, sensorsRes] = await Promise.all([
+                    fetch(`http://${ESP32_IP}/status`),
+                    fetch(`http://${ESP32_IP}/sensors`)
+                ]);
+                
+                const status = await statusRes.json();
+                const sensors = await sensorsRes.json();
+                
+                // Update mode
+                currentMode = status.manual_mode ? 'manual' : 'auto';
+                document.getElementById('mode-status').textContent = currentMode.toUpperCase();
+                updateModeUI();
+                
+                // Update sensors
+                document.getElementById('temperature').textContent = sensors.temperature.toFixed(1);
+                document.getElementById('humidity').textContent = sensors.humidity.toFixed(1);
+                
+                // Update fan
+                const fanStatus = document.getElementById('fan-status');
+                fanStatus.textContent = status.fan_on ? '🌀 ON' : '⚫ OFF';
+                fanStatus.className = status.fan_on ? 'fan-status fan-on' : 'fan-status fan-off';
+                
+                // Update lights with timeout info
+                const lightsStatus = document.getElementById('lights-status');
+                let lightsText = status.led_state;
+                
+                if (status.light_timeout_remaining && status.light_timeout_remaining > 0) {
+                    const mins = Math.floor(status.light_timeout_remaining / 60);
+                    const secs = status.light_timeout_remaining % 60;
+                    lightsText += ` (${mins}:${secs.toString().padStart(2, '0')})`;
+                }
+                
+                lightsStatus.textContent = lightsText;
+                
+            } catch (error) {
+                console.error('Status update error:', error);
+            }
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            updateStatus();
+            setInterval(updateStatus, 2000);
+            
+            // Initialize voice toggle button
+            const voiceToggle = document.getElementById('voice-toggle');
+            if (voiceToggle) {
+                voiceToggle.classList.add('active');
+            }
+            
+            // Load voices for speech synthesis
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.onvoiceschanged = function() {
+                    window.speechSynthesis.getVoices();
+                };
+            }
+        });
+    </script>
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed'));
+            });
+        }
+    </script>
+</body>
+
+</html>

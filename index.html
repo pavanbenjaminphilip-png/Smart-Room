@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered smart room control with Llama">
+    <meta name="theme-color" content="#00ff9d">
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Smart Room">
+
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+
+    <title>Smart Room - Llama AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Install Banner */
+        .install-banner {
+            background: rgba(0, 255, 157, 0.1);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .install-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .install-banner-icon {
+            font-size: 1.5rem;
+        }
+
+        .install-banner-text {
+            color: white;
+        }
+
+        .install-banner-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .install-banner-desc {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .install-banner-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .install-btn {
+            padding: 10px 20px;
+            background: #00ff9d;
+            border: none;
+            border-radius: 8px;
+            color: #1a1a2e;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .install-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .dismiss-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dismiss-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+        }
+
+        .status-label {
+            font-size: 0.85rem;
+            color: #00ff9d;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .fan-status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .fan-on {
+            background: #00ff9d;
+            color: #1a1a2e;
+        }
+
+        .fan-off {
+            background: rgba(255, 255, 255, 0.1);
+            color: #888;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            height: fit-content;
+        }
+
+        .controls-panel h3 {
+            color: #00ff9d;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group h4 {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: #00ff9d;
+        }
+
+        .control-btn.active {
+            background: #00ff9d;
+            color: #1a1a2e;
+        }
+
+        /* Input fields and Settings */
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #00ff9d;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Chat Container */
+        .chat-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .llama-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .llama-icon {
+            width: 50px;
+            height: 50px;
+            background: #00ff9d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        .llama-title {
+            font-size: 1.5rem;
+            color: #00ff9d;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(0, 255, 157, 0.1);
+            border-radius: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff9d;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            color: #00ff9d;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Messages */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 10px;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 157, 0.3);
+            border-radius: 3px;
+        }
+
+        .message {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .ai-avatar {
+            background: #00ff9d;
+            color: #1a1a2e;
+        }
+
+        .user-avatar {
+            background: #667eea;
+            color: white;
+        }
+
+        .message-content {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+        }
+
+        .ai-message .message-content {
+            background: rgba(0, 255, 157, 0.1);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            color: white;
+        }
+
+        .user-message {
+            flex-direction: row-reverse;
+        }
+
+        .user-message .message-content {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+
+        .system-message .message-content {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .voice-btn {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .voice-btn:hover {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: #00ff9d;
+        }
+
+        .voice-btn.listening {
+            background: #e74c3c;
+            border-color: #c0392b;
+            animation: pulse-mic 1s infinite;
+        }
+
+        @keyframes pulse-mic {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .voice-toggle-btn {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .voice-toggle-btn:hover {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: #00ff9d;
+        }
+
+        .voice-toggle-btn.active {
+            background: #00ff9d;
+            color: #1a1a2e;
+        }
+
+        .voice-toggle-btn.muted {
+            background: rgba(255, 255, 255, 0.05);
+            opacity: 0.5;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .send-btn {
+            padding: 15px 30px;
+            background: #00ff9d;
+            border: none;
+            border-radius: 25px;
+            color: #1a1a2e;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .install-banner {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .install-banner-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Install Banner -->
+        <div class="install-banner" id="install-banner">
+            <div class="install-banner-content">
+                <div class="install-banner-icon">📱</div>
+                <div class="install-banner-text">
+                    <div class="install-banner-title">Install Smart Room</div>
+                    <div class="install-banner-desc">Install this app for a better experience</div>
+                </div>
+            </div>
+            <div class="install-banner-buttons">
+                <button class="install-btn" id="install-button">Install</button>
+                <button class="dismiss-btn" id="dismiss-button">Later</button>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <!-- System Status Badge -->
+            <div class="status-item">
+                <div class="status-label">System</div>
+                <div class="status-value">
+                    <span id="system-status" class="status-badge status-ok">ONLINE</span>
+                </div>
+            </div>
+
+            <div class="status-item">
+                <div class="status-label">Mode</div>
+                <div class="status-value" style="font-size:1.2rem">
+                    <span id="mode-status">AUTO</span>
+                </div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Temperature</div>
+                <div class="status-value"><span id="temp-value">--</span></div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Humidity</div>
+                <div class="status-value"><span id="humidity-value">--</span></div>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Controls -->
+            <div class="controls-panel">
+                <h3>🎛️ Controls</h3>
+
+                <div class="control-group">
+                    <h4>Mode</h4>
+                    <button class="control-btn" id="auto-mode-btn" onclick="setMode('auto')">🤖 AUTO</button>
+                    <button class="control-btn" id="manual-mode-btn" onclick="setMode('manual')">✋ MANUAL</button>
+                </div>
+
+                <div id="manual-controls" style="display: none;">
+                    <div class="control-group">
+                        <h4>Fan</h4>
+                        <button class="control-btn" onclick="controlFan('on')">🌀 ON</button>
+                        <button class="control-btn" onclick="controlFan('off')">⚫ OFF</button>
+                        <button class="control-btn" onclick="controlFan('auto')">🤖 AUTO</button>
+                    </div>
+
+
+                    <div class="control-group">
+                        <h4>Blinds</h4>
+                        <button class="control-btn" onclick="controlBlinds('open')">🪟 OPEN</button>
+                        <button class="control-btn" onclick="controlBlinds('close')">🚪 CLOSE</button>
+                        <button class="control-btn" onclick="controlBlinds('auto')">🤖 AUTO</button>
+                    </div>
+
+                    <div class="control-group">
+                        <h4>Lights</h4>
+                        <button class="control-btn" onclick="controlLights(255)">💡 BRIGHT</button>
+                        <button class="control-btn" onclick="controlLights(50)">🔅 DIM</button>
+                        <button class="control-btn" onclick="controlLights(0)">⚫ OFF</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h4>Ask Llama</h4>
+                    <button class="control-btn" onclick="sendCommand('what is the temperature?')">🌡️
+                        Temperature</button>
+                    <button class="control-btn" onclick="sendCommand('what is the status of the room?')">📊 Full
+                        Status</button>
+                    <button class="control-btn" onclick="sendCommand('turn on the fan')">🌀 Fan ON</button>
+
+                </div>
+
+                <!-- Connection Settings Removed -->
+            </div>
+
+            <!-- Chat -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="llama-logo">
+                        <div class="llama-icon">AI</div>
+                        <div class="llama-title">LLAMA</div>
+                    </div>
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <div class="status-text">Llama 3.2:1b Ready</div>
+                    </div>
+                </div>
+
+                <div class="messages" id="messages">
+                    <div class="message ai-message">
+                        <div class="message-avatar ai-avatar">AI</div>
+                        <div class="message-content">
+                            Hello! I'm your smart room AI assistant. I can help you control your room and answer any
+                            questions. Try asking me about the temperature or tell me to turn on the fan!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <button class="voice-btn" id="voice-input-btn" onclick="toggleVoiceInput()" title="Voice Input">
+                        🎤
+                    </button>
+                    <input type="text" id="user-input" placeholder="Ask anything... (or click 🎤 for voice)"
+                        onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="send-btn" onclick="sendMessage()">SEND</button>
+                    <button class="voice-toggle-btn" id="voice-toggle" onclick="toggleVoiceResponse()"
+                        title="Toggle Voice Responses">
+                        🔊
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ollama configuration
+        const OLLAMA_URL = '/api/chat';
+        const MODEL = 'llama3.2:1b';
+
+        // ESP32 now connects automatically via proxy routes - no configuration needed
+
+        let conversationHistory = [];
+        let currentMode = 'auto';
+        let deferredPrompt;
+
+        // Voice settings
+        let voiceEnabled = true;
+        let isListening = false;
+        let recognition = null;
+        let currentUtterance = null;
+
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function () {
+                isListening = true;
+                document.getElementById('voice-input-btn').classList.add('listening');
+                document.getElementById('voice-input-btn').textContent = '🔴';
+                addSystemMessage('🎤 Listening...');
+            };
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user-input').value = transcript;
+                addSystemMessage(`🎤 You said: "${transcript}"`);
+            };
+
+            recognition.onerror = function (event) {
+                console.error('Speech recognition error:', event.error);
+                addSystemMessage('❌ Voice input error: ' + event.error);
+            };
+
+            recognition.onend = function () {
+                isListening = false;
+                document.getElementById('voice-input-btn').classList.remove('listening');
+                document.getElementById('voice-input-btn').textContent = '🎤';
+            };
+        }
+
+        function toggleVoiceInput() {
+            if (!recognition) {
+                addSystemMessage('❌ Speech recognition not supported');
+                return;
+            }
+            if (isListening) recognition.stop();
+            else recognition.start();
+        }
+
+        function toggleVoiceResponse() {
+            voiceEnabled = !voiceEnabled;
+            const btn = document.getElementById('voice-toggle');
+            if (voiceEnabled) {
+                btn.classList.add('active');
+                btn.textContent = '🔊';
+                addSystemMessage('✓ Voice responses enabled');
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '🔇';
+                addSystemMessage('✓ Voice responses muted');
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function speak(text) {
+            if (!voiceEnabled) return;
+            window.speechSynthesis.cancel();
+            const cleanText = text.replace(/[🚶🔥💧🌡️📷🪟🌀💡⚡⏹️🤖✋📊⚫🔅✓❌]/g, '');
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // PWA registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker failed', err));
+            });
+        }
+
+        // Mode control with Optimistic Update
+        async function setMode(mode) {
+            // OPTIMISTIC UPDATE: Update UI immediately
+            const previousMode = currentMode;
+            updateModeUI(mode === 'auto'); // true if auto, false if manual
+
+            try {
+                const response = await fetch('/esp32/mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `mode=${mode}`
+                });
+                if (!response.ok) throw new Error('Failed to set mode');
+                addSystemMessage(`✓ Mode changed to ${mode.toUpperCase()}`);
+            } catch (error) {
+                console.error("Mode set failed:", error);
+                // REVERT on error
+                updateModeUI(previousMode === 'auto');
+                addSystemMessage("❌ Failed to change mode. Check connection.");
+            }
+        }
+
+        function updateModeUI(isAuto) {
+            currentMode = isAuto ? 'auto' : 'manual';
+            document.getElementById('mode-status').textContent = currentMode.toUpperCase();
+
+            // Visual feedback
+            const btnAuto = document.getElementById('auto-mode-btn');
+            const btnManual = document.getElementById('manual-mode-btn');
+            const manualControls = document.getElementById('manual-controls');
+
+            if (isAuto) {
+                btnAuto.classList.add('active');
+                btnManual.classList.remove('active');
+                manualControls.style.display = 'none';
+            } else {
+                btnAuto.classList.remove('active');
+                btnManual.classList.add('active');
+                manualControls.style.display = 'block';
+            }
+        }
+
+        // Manual controls with Optimistic Updates
+        async function controlFan(state) {
+            // Visual feedback immediately
+            const btnOn = document.querySelector('button[onclick="controlFan(\'on\')"]');
+            const btnOff = document.querySelector('button[onclick="controlFan(\'off\')"]');
+            const btnAuto = document.querySelector('button[onclick="controlFan(\'auto\')"]');
+
+            // Simple visual toggle (actual state confirmed by poll)
+            document.querySelectorAll('.control-group button').forEach(b => {
+                // Only affect fan buttons
+                if (b.onclick && b.onclick.toString().includes('controlFan')) {
+                    b.classList.remove('active');
+                }
+            });
+            if (state === 'on') btnOn.classList.add('active');
+            if (state === 'off') btnOff.classList.add('active');
+            if (state === 'auto') btnAuto.classList.add('active');
+
+            try {
+                const response = await fetch('/esp32/fan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `state=${state}`
+                });
+                if (!response.ok) throw new Error('Failed to control fan');
+                addSystemMessage(`✓ Fan set to ${state.toUpperCase()}`);
+            } catch (error) {
+                console.error('Fan error', error);
+                addSystemMessage("❌ Failed to control fan. Check connection.");
+            }
+        }
+
+        async function controlBlinds(position) {
+            // Visual feedback
+            const btnOpen = document.querySelector('button[onclick="controlBlinds(\'open\')"]');
+            const btnClose = document.querySelector('button[onclick="controlBlinds(\'close\')"]');
+            const btnAuto = document.querySelector('button[onclick="controlBlinds(\'auto\')"]');
+
+            document.querySelectorAll('.control-group button').forEach(b => {
+                // Only affect blinds buttons
+                if (b.onclick && b.onclick.toString().includes('controlBlinds')) {
+                    b.classList.remove('active');
+                }
+            });
+            if (position === 'open') btnOpen.classList.add('active');
+            if (position === 'close') btnClose.classList.add('active');
+            if (position === 'auto') btnAuto.classList.add('active');
+
+            try {
+                const response = await fetch('/esp32/blinds', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `position=${position}`
+                });
+                if (!response.ok) throw new Error('Failed to control blinds');
+                addSystemMessage(`✓ Blinds set to ${position.toUpperCase()}`);
+            } catch (error) {
+                console.error('Blinds error', error);
+                addSystemMessage("❌ Failed to control blinds. Check connection.");
+            }
+        }
+
+        async function controlLights(value) {
+            // Visual feedback
+            const btnBright = document.querySelector('button[onclick="controlLights(255)"]');
+            const btnDim = document.querySelector('button[onclick="controlLights(50)"]');
+            const btnOff = document.querySelector('button[onclick="controlLights(0)"]');
+
+            document.querySelectorAll('.control-group button').forEach(b => {
+                // Only affect light buttons
+                if (b.onclick && b.onclick.toString().includes('controlLights')) {
+                    b.classList.remove('active');
+                }
+            });
+            if (value === 255) btnBright.classList.add('active');
+            if (value === 50) btnDim.classList.add('active');
+            if (value === 0) btnOff.classList.add('active');
+
+            try {
+                const response = await fetch('/esp32/brightness', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `value=${value}`
+                });
+                updateStatus();
+                addSystemMessage('✓ Lights updated');
+            } catch (error) { console.error('Lights error', error); }
+        }
+
+        async function getFullSystemStatus() {
+            try {
+                // Fetch fresh data with cache busting
+                const t = Date.now();
+                const [statusRes, sensorsRes] = await Promise.all([
+                    fetch(`/esp32/status?t=${t}`),
+                    fetch(`/esp32/sensors?t=${t}`)
+                ]);
+                const status = await statusRes.json();
+                const sensors = await sensorsRes.json();
+
+                // Detailed context for AI
+                return `SMART ROOM STATUS:
+- Temperature: ${sensors.temperature.toFixed(1)}°C
+- Humidity: ${sensors.humidity.toFixed(1)}%  
+- Light Level: ${sensors.light_level}
+- Motion: ${sensors.motion ? 'DETECTED' : 'None'}
+- Mode: ${status.manual_mode ? 'MANUAL' : 'AUTO'}
+- Fan: ${status.fan_on ? 'ON' : 'OFF'} (${status.fan_auto ? 'AUTO mode' : 'Manual control'})
+- Lights: ${status.led_state} (Brightness: ${status.led_brightness}/255)
+- Blinds: ${status.blinds_state} (${status.blinds_auto ? 'AUTO mode' : 'Manual control'})`;
+            } catch (error) {
+                return 'STATUS: Unable to fetch sensor data from ESP32. Check connection.';
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (!message) return;
+            addUserMessage(message);
+            input.value = '';
+
+            const status = await getFullSystemStatus();
+
+            conversationHistory.push({ role: 'user', content: `You are a friendly and helpful Smart Room AI. Respond naturally to the user. You can greet them or engage in general conversation, and use the status below to help with room controls. Be concise but warm.\n\n[ROOM STATUS]\n${status}\n\n[USER REQUEST]\n${message}` });
+
+            await streamResponse();
+        }
+
+        async function sendCommand(command) {
+            document.getElementById('user-input').value = command;
+            sendMessage();
+        }
+
+        async function streamResponse() {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message';
+            messageDiv.innerHTML = `<div class="message-avatar ai-avatar">AI</div><div class="message-content"></div>`;
+            messagesDiv.appendChild(messageDiv);
+            const contentDiv = messageDiv.querySelector('.message-content');
+            let fullResponse = '';
+
+            try {
+                const response = await fetch(OLLAMA_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model: MODEL, messages: conversationHistory, stream: true })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.trim()) {
+                            try {
+                                const data = JSON.parse(line);
+                                if (data.message && data.message.content) {
+                                    fullResponse += data.message.content;
+                                    contentDiv.textContent = fullResponse;
+                                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                                }
+                                if (data.done) {
+                                    conversationHistory.push({ role: 'assistant', content: fullResponse });
+                                    speak(fullResponse);
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }
+            } catch (error) {
+                contentDiv.textContent = 'Error connecting to AI server.';
+            }
+        }
+
+        function addUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message user-message';
+            div.innerHTML = `<div class="message-avatar user-avatar">U</div><div class="message-content">${text}</div>`;
+            document.getElementById('messages').appendChild(div);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        }
+
+        function addSystemMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message system-message';
+            div.innerHTML = `<div class="message-content">${text}</div>`;
+            document.getElementById('messages').appendChild(div);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        }
+
+        let isUpdating = false;
+
+        async function updateStatus() {
+            if (isUpdating) return; // Prevent concurrent updates piling up
+            isUpdating = true;
+
+            try {
+                // Fetch in parallel with cache busting
+                const timestamp = Date.now();
+                const [statusRes, sensorsRes] = await Promise.all([
+                    fetch(`/esp32/status?t=${timestamp}`).catch(e => null),
+                    fetch(`/esp32/sensors?t=${timestamp}`).catch(e => null)
+                ]);
+
+                if (statusRes && statusRes.ok) {
+                    const status = await statusRes.json();
+
+                    // Update System Status
+                    const sysStatus = document.getElementById('system-status');
+                    sysStatus.textContent = status.system_on ? 'ONLINE' : 'OFFLINE';
+                    sysStatus.className = 'status-badge ' + (status.system_on ? 'status-ok' : 'status-error');
+
+                    // Update controls state (only if not recently interacted - strictly we trust server state eventually)
+                    // We rely on optimistic updates for immediate feel, but server is truth
+
+                    // Update Mode
+                    if (currentMode !== (status.manual_mode ? 'manual' : 'auto')) {
+                        // Only update if we aren't in the middle of a user interaction (simplification: just update)
+                        updateModeUI(!status.manual_mode);
+                    }
+                }
+
+                if (sensorsRes && sensorsRes.ok) {
+                    const sensors = await sensorsRes.json();
+
+                    // Smooth numeric updates
+                    document.getElementById('temp-value').textContent = sensors.temperature.toFixed(1) + '°C';
+                    document.getElementById('humidity-value').textContent = sensors.humidity.toFixed(1) + '%';
+                }
+            } catch (error) {
+                console.error('Update loop error', error);
+                // Don't show error to user constantly, just log it
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        window.addEventListener('load', () => {
+            updateStatus();
+            setInterval(updateStatus, 2000);
+        });
+    </script>
+</body>
+
+</html>
