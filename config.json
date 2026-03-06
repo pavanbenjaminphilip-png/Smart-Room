@@ -1,6 +1,0 @@
-{
-  "esp32_ip": "192.168.0.139",
-  "camera_index": 0,
-  "detection_threshold": 0.6,
-  "port": 8000
-}
