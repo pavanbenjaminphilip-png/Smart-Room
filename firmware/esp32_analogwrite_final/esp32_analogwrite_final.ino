@@ -58,10 +58,10 @@ const char* password = "Thakkol1";
 #define FAN_PIN 13           // Fan relay
 
 // Stepper Motor Pins (28BYJ-48)
-#define STEPPER_IN1 23
-#define STEPPER_IN2 4
-#define STEPPER_IN3 15
-#define STEPPER_IN4 35
+#define STEPPER_IN1 35
+#define STEPPER_IN2 15
+#define STEPPER_IN3 4
+#define STEPPER_IN4 23
 
 // Stepper Motor Configuration
 #define STEPS_PER_REV 2048   // 28BYJ-48 with gear reduction
@@ -325,17 +325,24 @@ void updateLED() {
 }
 
 void updateFan() {
-  // Auto fan control based on temperature
-  bool shouldFanBeOn = (temperature > TEMP_THRESHOLD_FAN);
+  // Auto fan control based on temperature with a 1.0°C hysteresis 
+  // to prevent rapid toggling of the relay.
+  bool shouldFanBeOn = fanOn; // Default to current state
+  
+  if (temperature >= TEMP_THRESHOLD_FAN) {
+    shouldFanBeOn = true;
+  } else if (temperature <= (TEMP_THRESHOLD_FAN - 1.0)) {
+    shouldFanBeOn = false;
+  }
   
   if (shouldFanBeOn != fanOn) {
     fanOn = shouldFanBeOn;
     digitalWrite(FAN_PIN, fanOn ? HIGH : LOW);
     
     if (fanOn) {
-      Serial.printf("🌀 Fan ON (temp: %.1f°C > %.1f°C)\n", temperature, TEMP_THRESHOLD_FAN);
+      Serial.printf("🌀 Fan ON (temp: %.1f°C >= %.1f°C)\n", temperature, TEMP_THRESHOLD_FAN);
     } else {
-      Serial.printf("🌀 Fan OFF (temp: %.1f°C)\n", temperature);
+      Serial.printf("🌀 Fan OFF (temp: %.1f°C <= %.1f°C)\n", temperature, TEMP_THRESHOLD_FAN - 1.0);
     }
   }
 }
